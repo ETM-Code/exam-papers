@@ -28,7 +28,6 @@ const (
 	PDFURL     = BaseURL + "/archive"
 )
 
-// Material types accepted by the form.
 var MaterialTypes = map[string]string{
 	"exampapers":              "Exam Papers",
 	"markingschemes":          "Marking Schemes",
@@ -36,14 +35,12 @@ var MaterialTypes = map[string]string{
 	"deferredmarkingschemes":  "Deferred Exam Marking Schemes",
 }
 
-// Examination codes.
 var Examinations = map[string]string{
 	"lc": "Leaving Certificate",
 	"jc": "Junior Cycle",
 	"lb": "Leaving Certificate Applied",
 }
 
-// Level codes embedded in file IDs.
 var Levels = map[byte]string{
 	'A': "Higher",
 	'G': "Ordinary",
@@ -51,7 +48,6 @@ var Levels = map[byte]string{
 	'C': "Common",
 }
 
-// Paper represents a single downloadable exam paper or marking scheme.
 type Paper struct {
 	Description  string `json:"description"`
 	FileID       string `json:"file_id"`
@@ -63,12 +59,11 @@ type Paper struct {
 	MaterialType string `json:"material_type"`
 }
 
-// DirectURL returns the direct PDF URL, bypassing the obfuscated link.
 func (p Paper) DirectURL() string {
 	return fmt.Sprintf("%s/%s/%s/%s", PDFURL, p.MaterialType, p.Year, p.FileID)
 }
 
-// Level extracts the level from the file ID (e.g. "Higher", "Ordinary").
+// Level extracts the level from the file ID.
 func (p Paper) Level() string {
 	re := regexp.MustCompile(`(?i)[A-Z]{2}\d{3}([A-Z])LP`)
 	m := re.FindStringSubmatch(p.FileID)
@@ -82,7 +77,6 @@ func (p Paper) Level() string {
 	return "Unknown"
 }
 
-// Language extracts the language from the file ID.
 func (p Paper) Language() string {
 	upper := strings.ToUpper(p.FileID)
 	if strings.HasSuffix(upper, "EV.PDF") {
@@ -94,13 +88,11 @@ func (p Paper) Language() string {
 	return "Unknown"
 }
 
-// Subject holds a subject code and display name.
 type Subject struct {
 	Code string `json:"code"`
 	Name string `json:"name"`
 }
 
-// Client fetches exam papers from examinations.ie.
 type Client struct {
 	http      *http.Client
 	formState url.Values
@@ -109,7 +101,6 @@ type Client struct {
 	nextActions map[string]string
 }
 
-// NewClient creates a new exam papers client.
 func NewClient() *Client {
 	return &Client{
 		http:      &http.Client{},
@@ -151,8 +142,7 @@ func decodeParam(encoded string) string {
 var onChangeRe = regexp.MustCompile(`onChange=SubmitForm\("([^"]+)"\);[^>]*name="([^"]+)"`)
 var onClickRe = regexp.MustCompile(`onClick=SubmitForm\("([^"]+)"\);[^>]*name="([^"]+)"`)
 
-// parseActions extracts the SubmitForm action values from HTML onChange/onClick handlers.
-// The server generates these with random offsets and validates them on the next POST.
+// parseActions extracts SubmitForm action values from onChange/onClick handlers in the HTML.
 func parseActions(html string) map[string]string {
 	actions := map[string]string{}
 
@@ -288,7 +278,7 @@ func (c *Client) selectType(materialType string) (string, error) {
 
 func (c *Client) selectYear(year string) (string, error) {
 	return c.postForm("year", map[string]string{
-		"MaterialArchive__noTable__sbv__YearSelect": year,
+		"MaterialArchive__noTable__sbv__YearSelect":  year,
 		"MaterialArchive__noTable__sbh__YearSelect": "id",
 	})
 }
@@ -300,9 +290,9 @@ func (c *Client) selectExam(exam string) (string, error) {
 	})
 }
 
-func (c *Client) selectSubject(subjectCode string) (string, error) {
+func (c *Client) selectSubject(code string) (string, error) {
 	return c.postForm("subject", map[string]string{
-		"MaterialArchive__noTable__sbv__SubjectSelect": subjectCode,
+		"MaterialArchive__noTable__sbv__SubjectSelect": code,
 		"MaterialArchive__noTable__sbh__SubjectSelect": "id",
 	})
 }
@@ -446,7 +436,6 @@ func (c *Client) GetPapers(materialType, year, exam, subjectCode string) ([]Pape
 	return parsePapers(html, year, exam, subjectCode, materialType), nil
 }
 
-// Filename returns a year-prefixed filename to avoid collisions across years.
 func (p Paper) Filename() string {
 	return p.Year + "_" + p.FileID
 }
