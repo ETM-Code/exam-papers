@@ -163,6 +163,15 @@ These are the codes you pass to `-s`. The full list is available via `exam-paper
 - **Some papers are huge** (Ordinary Level Physics 2021 is 43MB). Likely because the original PDFs were lost at some point and replaced with scans.
 - Files are named `{year}_{fileID}` to avoid collisions when downloading across multiple years.
 
+## Agent Instructions
+
+The `agent-instructions/` folder contains instruction files for AI coding assistants:
+
+- `CLAUDE.md` for [Claude Code](https://claude.ai/code)
+- `AGENTS.md` for [OpenAI Codex](https://openai.com/codex)
+
+Copy whichever one you need to the project root (or wherever your tool expects it). They contain the project structure, build/test commands, API details, and the subject code reference.
+
 ## License
 
 MIT
